@@ -22,6 +22,14 @@ type SubNested struct {
 	Value string `url:"value"`
 }
 
+type NestedString struct {
+	value string
+}
+
+func (this NestedString) String() string {
+	return this.value
+}
+
 func TestValues_types(t *testing.T) {
 	str := "string"
 	strPtr := &str
@@ -159,6 +167,22 @@ func TestValues_types(t *testing.T) {
 				"nest[b]":          {""},
 				"nest[ptr][value]": {"that"},
 			},
+		},
+		{
+			struct {
+				S NestedString `url:"s,string"`
+			}{
+				NestedString{"that"},
+			},
+			url.Values{
+				"s": {"that"},
+			},
+		},
+		{
+			struct {
+				S NestedString `url:"s,string,omitempty"`
+			}{},
+			url.Values{},
 		},
 		{
 			nil,

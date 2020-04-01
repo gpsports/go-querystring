@@ -165,7 +165,7 @@ func reflectValue(values url.Values, val reflect.Value, scope string) error {
 			name = scope + "[" + name + "]"
 		}
 
-		if opts.Contains("omitempty") && isEmptyValue(sv) {
+		if opts.Contains("omitempty") && isEmptyValue(sv, opts) {
 			continue
 		}
 
@@ -229,7 +229,7 @@ func reflectValue(values url.Values, val reflect.Value, scope string) error {
 			continue
 		}
 
-		if sv.Kind() == reflect.Struct {
+		if sv.Kind() == reflect.Struct && !opts.Contains("string") {
 			reflectValue(values, sv, name)
 			continue
 		}
@@ -275,7 +275,7 @@ func valueString(v reflect.Value, opts tagOptions) string {
 
 // isEmptyValue checks if a value should be considered empty for the purposes
 // of omitting fields with the "omitempty" option.
-func isEmptyValue(v reflect.Value) bool {
+func isEmptyValue(v reflect.Value, opts tagOptions) bool {
 	switch v.Kind() {
 	case reflect.Array, reflect.Map, reflect.Slice, reflect.String:
 		return v.Len() == 0
@@ -289,6 +289,12 @@ func isEmptyValue(v reflect.Value) bool {
 		return v.Float() == 0
 	case reflect.Interface, reflect.Ptr:
 		return v.IsNil()
+	case reflect.Struct:
+		if opts.Contains("string") {
+			if stringer, isStringer := v.Interface().(fmt.Stringer); isStringer {
+				return stringer.String() == ""
+			}
+		}
 	}
 
 	if v.Type() == timeType {
