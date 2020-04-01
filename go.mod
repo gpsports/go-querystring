@@ -1,3 +1,3 @@
-module github.com/google/go-querystring
+module github.com/gpsports/go-querystring
 
 go 1.13
